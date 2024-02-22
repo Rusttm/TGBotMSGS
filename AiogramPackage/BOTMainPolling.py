@@ -83,11 +83,17 @@ async def scheduller_sends():
         # recipients_list = bot.admins_list
         recipients_list = bot.fins_list
         for recipient_id in recipients_list:
-            await bot.send_message(chat_id=recipient_id, text="Время <b>ежедневного</b> отчета")
-            await bot.send_message(chat_id=recipient_id, text=prepare_rep_string)
+            try:
+                await bot.send_message(chat_id=recipient_id, text="Время <b>ежедневного</b> отчета:")
+                await bot.send_message(chat_id=recipient_id, text=prepare_rep_string)
+            except Exception as e:
+                err_msg = f"Не могу отправить ежедневный отчет в чат {recipient_id}, ошибка:\n{e}"
+                err_msg += f"Исключите пользователя с id {recipient_id} из списка в файле config/bot_main_config.json"
+                await bot.send_message(chat_id=bot.admins_list[0],
+                                       text=err_msg)
     except Exception as e:
         await bot.send_message(chat_id=bot.admins_list[0], text=f"Не могу отправить ежедневный отчет, ошибка:\n{e}")
-    print("It's noon!")
+    print("It's reports time! Go on!")
 
 async def main():
     dp.startup.register(on_startup)
