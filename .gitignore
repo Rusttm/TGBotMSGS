@@ -1,3 +1,27 @@
+
+bot_log.txt
+googleEmail.txt
+
+*.json
+*.ini
+*.xls
+*.xlsx
+*.httml
+*.html
+*.log
+*.db
+*.jpeg
+*.jpg
+*.xml
+*.pickle
+
+config/
+data/
+logs/
+pkg_env
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
