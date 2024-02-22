@@ -37,10 +37,10 @@ async def get_prod_info(callback: types.CallbackQuery, session: AsyncSession):
     await callback.message.answer(f"Описание товара: {prod_description}")
     await callback.answer()
 
-@callback_router.callback_query(F.data.startswith("rep_fin_profit_"), BOTFilterFinList())
-async def get_rep_fin_profit(callback: types.CallbackQuery, bot: Bot):
+@callback_router.callback_query(F.data.startswith("rep_fin_profit_daily_"), BOTFilterFinList())
+async def get_rep_fin_profit_daily(callback: types.CallbackQuery, bot: Bot):
     """ profit report """
-    extra_data = callback.data[15:]
+    extra_data = callback.data[21:]
     temp_msg = await bot.send_sticker(chat_id=extra_data, sticker=_await_sticker)
     try:
         res_str = await TGMSConnector().get_profit_rep_str_async()
@@ -48,7 +48,7 @@ async def get_rep_fin_profit(callback: types.CallbackQuery, bot: Bot):
         res_str = f"Can't form daily profit report, Error:\n {e}"
         logging.warning(res_str)
     else:
-        await bot.delete_messages([temp_msg.message_id])
+        await bot.delete_messages(chat_id= extra_data, message_ids = [temp_msg.message_id])
         await callback.message.answer(res_str)
     await callback.answer()
 
@@ -63,7 +63,7 @@ async def get_rep_bal(callback: types.CallbackQuery, bot: Bot):
         res_str = f"Can't form balance report, Error:\n {e}"
         logging.warning(res_str)
     else:
-        await bot.delete_messages([temp_msg.message_id])
+        await bot.delete_messages(chat_id= extra_data, message_ids = [temp_msg.message_id])
         await callback.message.answer(res_str)
     await callback.answer()
 @callback_router.callback_query(F.data.startswith("rep_fin_debt_"), BOTFilterFinList())
@@ -76,7 +76,7 @@ async def get_rep_debt(callback: types.CallbackQuery, bot: Bot):
         res_str = f"Can't form debt report, Error:\n {e}"
         logging.warning(res_str)
     else:
-        await bot.delete_messages([temp_msg.message_id])
+        await bot.delete_messages(chat_id= extra_data, message_ids = [temp_msg.message_id])
         await callback.message.answer(res_str)
     await callback.answer()
 @callback_router.callback_query(F.data.startswith("rep_fin_margin_"), BOTFilterFinList())
@@ -89,7 +89,7 @@ async def get_rep_margins(callback: types.CallbackQuery, bot: Bot):
         res_str = f"Can't form margins report, Error:\n {e}"
         logging.warning(res_str)
     else:
-        await bot.delete_messages([temp_msg.message_id])
+        await bot.delete_messages(chat_id= extra_data, message_ids = [temp_msg.message_id])
         await callback.message.answer(res_str)
     await callback.answer()
 
@@ -97,13 +97,14 @@ async def get_rep_margins(callback: types.CallbackQuery, bot: Bot):
 async def get_rep_account(callback: types.CallbackQuery, bot: Bot):
     extra_data = callback.data[16:]
     temp_msg = await bot.send_sticker(chat_id=extra_data, sticker=_await_sticker)
+    # temp_msg = await bot.send_message(chat_id=extra_data, text=extra_data)
     try:
         res_str = await TGMSConnector().get_account_rep_str_async()
     except Exception as e:
         res_str = f"Can't form accounts report, Error:\n {e}"
         logging.warning(res_str)
     else:
-        await bot.delete_messages([temp_msg.message_id])
+        await bot.delete_messages(chat_id= extra_data, message_ids = [temp_msg.message_id])
         await callback.message.answer(res_str)
     await callback.answer()
 

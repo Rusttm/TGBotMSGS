@@ -27,7 +27,8 @@ logger = bot_class.logger
 logger.brand = f"{os.path.basename(__file__)}"
 logger.info(f"logger {os.path.basename(__file__)} starts logging")
 
-ALLOWED_UPDATES = ["message", "edited_message", "callback_query"]
+# version1 set updates list
+# ALLOWED_UPDATES = ["message", "edited_message", "callback_query"]
 
 bot = Bot(token=_config.get("bot_config").get("token"), parse_mode=ParseMode.HTML)
 dp = Dispatcher()
@@ -70,7 +71,8 @@ async def on_shutdown():
 
 # from https://ru.stackoverflow.com/questions/1144849/%D0%9A%D0%B0%D0%BA-%D1%81%D0%BE%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%B8%D1%82%D1%8C-%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%83-aiogram-%D0%B8-schedule-%D0%BD%D0%B0-%D0%A2elegram-bot
 async def scheduler():
-    aioschedule.every().day.at("19:11").do(scheduller_sends)
+    update_time = "17:00"
+    aioschedule.every().day.at(update_time).do(scheduller_sends)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

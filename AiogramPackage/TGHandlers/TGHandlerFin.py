@@ -61,7 +61,7 @@ async def menu_cmd(message: types.Message, bot: Bot):
                              photo=BufferedInputFile(file=await plot_img.read(), filename="График"),
                              caption=f"Здравствуйте, {hbold(message.from_user.first_name)}, добро пожаловать в 📉<b>отчеты</b>!",
                              reply_markup=get_callback_btns(btns={
-                                 "💸Прибыли/Убытки": f"rep_fin_profit_daily{message.chat.id}",
+                                 "💸Прибыли/Убытки": f"rep_fin_profit_daily_{message.chat.id}",
                                  "⚖️Баланс": f"rep_fin_balance_{message.chat.id}",
                                  "🚬Долги клиентов": f"rep_fin_debt_{message.chat.id}",
                                  "🛠️Отгрузки <30%": f"rep_fin_margin_{message.chat.id}",
