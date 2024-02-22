@@ -1,0 +1,11 @@
+[Unit]
+Description=Serman Bot service v2
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/home/rusttm/PycharmProjects/SermanBot_v2/pkg_env/bin/python /home/rusttm/PycharmProjects/SermanBot_v2/AiogramPackage/BOTMainPolling.py
+
+[Install]
+WantedBy=multi-user.target

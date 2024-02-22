@@ -2,7 +2,7 @@ import logging
 import os
 
 import aiofiles
-from aiogram import types, Router, F, Bot
+from aiogram import types, Router, F, Bot, html
 from aiogram.filters import CommandStart, Command, or_f, StateFilter
 from aiogram.filters.callback_data import CallbackQueryFilter
 from aiogram.fsm.state import StatesGroup, State
@@ -61,7 +61,7 @@ async def menu_cmd(message: types.Message):
 async def menu_cmd(message: types.Message):
     # ver1
     # await message.answer(f"{message.from_user.first_name}, welcome to main menu!", reply_markup=my_reply_kb.del_kb)
-    await message.answer(f"{message.from_user.first_name}, welcome to main menu!", reply_markup=reply_kb_lvl1)
+    await message.answer(f"{html.quote(message.from_user.first_name)}, welcome to main menu!", reply_markup=reply_kb_lvl1)
 
 
 @user_router.message(Command("catalogue", ignore_case=True))
@@ -74,13 +74,29 @@ async def menu_cmd(message: types.Message):
                          ))
 
 
+@user_router.message(F.text.lower().contains("реквизиты"))
+async def company_info_cmd(message: types.Message):
+    msg = str('<b>Наименование:</b> Акционерное общество «Серман»\n'
+              '<b>Адрес:</b> 125504, г. Москва, Дмитровское шоссе, д. 71Б, этаж 5, комната 7)\n'
+              '<b>ИНН / КПП:</b> 7743275417 / 774301001\n'
+              '<b>ОГРН/ОКПО:</b> 1187746831007/33241658\n'
+              '<b>БИК Банка:</b> 044525593\n'
+              '<b>Наименование банка:</b> АО "АЛЬФА-БАНК"\n'
+              '<b>Корреспондентский счет:</b> 30101810200000000593\n'
+              '<b>Расчетный счет:</b> 40702810801300031452\n'
+              '<b>Телефон:</b> +8 495 909 8033')
+    await message.answer(f"Здравствуйте, {hbold(html.quote(message.from_user.first_name))}, реквизиты нашей Копании:\n{msg}")
+
+
 class FindInstrument(StatesGroup):
     brand = State()
     model = State()
 
+
 class FindSpare(StatesGroup):
     brand = State()
     code = State()
+
 
 available_instrument_brands = []
 available_instrument_models = ["812", "CN70"]
@@ -114,6 +130,7 @@ async def find_model_instrument(message: types.Message, state: FSMContext, bot: 
     await state.update_data(brand=message.text)
     await message.answer(f"Введите <b>Модель</b> 🔨инструмента", reply_markup=make_row_keyboard(kb_lines))
     await state.set_state(FindInstrument.model)
+
 
 @user_router.message(FindInstrument.model)
 async def find_instrument(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot):
@@ -160,8 +177,8 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
     await state.clear()
 
 
-
 """  Запчасти """
+
 
 @user_router.message(StateFilter(None), F.text.lower() == "запчасти")
 async def find_brand_spare(message: types.Message, state: FSMContext, bot: Bot):
@@ -169,6 +186,7 @@ async def find_brand_spare(message: types.Message, state: FSMContext, bot: Bot):
     kb_lines = [add_btn, available_spares_brands]
     await message.answer(f"Введите <b>строку</b> для поиска 🔩запчасти", reply_markup=make_row_keyboard(kb_lines))
     await state.set_state(FindSpare.brand)
+
 
 @user_router.message(FindSpare.brand)
 async def find_model_spare(message: types.Message, state: FSMContext, bot: Bot):
@@ -179,6 +197,8 @@ async def find_model_spare(message: types.Message, state: FSMContext, bot: Bot):
                          reply_markup=make_row_keyboard(kb_lines),
                          input_field_placeholder="Введите поисковый запрос")
     await state.set_state(FindSpare.code)
+
+
 @user_router.message(FindSpare.code)
 async def find_spare(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot):
     await state.update_data(code=message.text)
@@ -189,7 +209,8 @@ async def find_spare(message: types.Message, state: FSMContext, session: AsyncSe
     data = await state.get_data()
     brand = data.get("brand")
     code = data.get("code")
-    statement = select(TGModelProd).filter(TGModelProd.pathName.contains(brand)).filter(TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
+    statement = select(TGModelProd).filter(TGModelProd.pathName.contains(brand)).filter(
+        TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
     result = await session.execute(statement)
     obj_list = result.scalars().all()
     if obj_list:
@@ -222,7 +243,6 @@ async def find_spare(message: types.Message, state: FSMContext, session: AsyncSe
     else:
         await message.answer(f"🔩Запчастей: {str(data)} не обнаружено!")
     await state.clear()
-
 
 # @user_router.message(FindInstrument.model, F.text.lower() != "отмена")
 # async def wrong_model_instrument(message: types.Message):
