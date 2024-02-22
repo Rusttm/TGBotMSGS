@@ -1,7 +1,7 @@
 
 bot_log.txt
 googleEmail.txt
-
+*.pdf
 *.json
 *.ini
 *.xls
