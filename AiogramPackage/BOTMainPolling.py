@@ -70,7 +70,7 @@ async def on_shutdown():
 
 # from https://ru.stackoverflow.com/questions/1144849/%D0%9A%D0%B0%D0%BA-%D1%81%D0%BE%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%B8%D1%82%D1%8C-%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%83-aiogram-%D0%B8-schedule-%D0%BD%D0%B0-%D0%A2elegram-bot
 async def scheduler():
-    aioschedule.every().day.at("17:27").do(scheduller_sends)
+    aioschedule.every().day.at("19:11").do(scheduller_sends)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

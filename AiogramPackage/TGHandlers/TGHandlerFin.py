@@ -22,6 +22,9 @@ from AiogramPackage.TGKeyboards.TGKeybInline import get_callback_btns
 from AiogramPackage.TGConnectors.TGMSConnector import TGMSConnector
 from AiogramPackage.TGMiddleWares.TGMWCallbackData import TGMWCallbackData
 
+_static_dir = "data_static"
+_reports_img = "plot_img.jpg"
+_await_sticker = "CAACAgIAAxkBAAELd3Vl1n8pL3dHXcijRQ6OSUXB4Iu7EwACGwMAAs-71A7CHN2zMqnsdTQE"
 
 fin_group_router = Router()
 fin_group_router.message.filter(BOTFilterChatType(["private"]), BOTFilterFinList())
@@ -50,17 +53,19 @@ async def admin_menu_cmd(message: types.Message):
 @fin_group_router.message(Command("report", "rep", ignore_case=True))
 @fin_group_router.message(F.text.lower().contains("отчет"))
 async def menu_cmd(message: types.Message, bot: Bot):
-    static_file = os.path.join(os.getcwd(), "data_static", "plot_img.jpg")
+
+    up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
+    static_file = os.path.join(up_cur_file_path, _static_dir, _reports_img)
     async with aiofiles.open(static_file, "rb") as plot_img:
         await bot.send_photo(chat_id=message.chat.id,
                              photo=BufferedInputFile(file=await plot_img.read(), filename="График"),
                              caption=f"Здравствуйте, {hbold(message.from_user.first_name)}, добро пожаловать в 📉<b>отчеты</b>!",
                              reply_markup=get_callback_btns(btns={
-                                 "💸Прибыли/Убытки": "rep_fin_profit_daily",
-                                 "⚖️Баланс": "rep_fin_balance_",
-                                 "🚬Долги клиентов": "rep_fin_debt_",
-                                 "🛠️Отгрузки <30%": "rep_fin_margin_",
-                                 "💰Остатки на счетах": "rep_fin_account_",
+                                 "💸Прибыли/Убытки": f"rep_fin_profit_daily{message.chat.id}",
+                                 "⚖️Баланс": f"rep_fin_balance_{message.chat.id}",
+                                 "🚬Долги клиентов": f"rep_fin_debt_{message.chat.id}",
+                                 "🛠️Отгрузки <30%": f"rep_fin_margin_{message.chat.id}",
+                                 "💰Остатки на счетах": f"rep_fin_account_{message.chat.id}",
                                  "📆Итоги на сегодня": f"rep_fin_daily_{message.chat.id}"
                              }),
                              request_timeout=100)
@@ -83,7 +88,7 @@ async def send_summary_rep_daily(message: types.Message, state: FSMContext, bot:
     """ send summary daily report"""
     temp_msg = await message.answer("Запрошен большой итоговый отчет, формируется, подождите ...⏱️")
     # from https://zelenka.guru/threads/3538801/
-    temp_sticker = await message.reply_sticker(sticker="CAACAgIAAxkBAAELd3Vl1n8pL3dHXcijRQ6OSUXB4Iu7EwACGwMAAs-71A7CHN2zMqnsdTQE")
+    temp_sticker = await message.reply_sticker(sticker=_await_sticker)
     today = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     res_msg = str(f"Отчет на {today}\n")
     try:

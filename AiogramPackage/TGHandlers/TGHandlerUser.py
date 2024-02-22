@@ -22,6 +22,9 @@ from AiogramPackage.TGKeyboards.TGKeybInline import get_callback_btns, get_url_b
 from AiogramPackage.TGAlchemy.TGModelProd import TGModelProd
 from AiogramPackage.TGAlchemy.TGDbQueriesProd import db_get_prod
 
+_static_dir = "data_static"
+_spares_img = "instrument_img.jpg"
+
 user_router = Router()
 user_router.message.filter(BOTFilterChatType(["private"]))
 
@@ -159,7 +162,8 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
                         photo = attr.get("value")
             except Exception as e:
                 logging.warning(f"cannot get attributes from prod, error {e}")
-            static_file = os.path.join(os.getcwd(), "data_static", "instrument_img.jpg")
+            up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
+            static_file = os.path.join(up_cur_file_path, _static_dir, _spares_img)
             async with aiofiles.open(static_file, "rb") as plot_img:
                 # print(f"{len(prod_obj.id)=} and {len(prod_obj.meta.get('href'))=}")
                 if not photo:
@@ -184,7 +188,9 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
 async def find_brand_spare(message: types.Message, state: FSMContext, bot: Bot):
     available_spares_brands = bot.filters_dict.get("spares_brands_list", ["Meite", "Block"])
     kb_lines = [add_btn, available_spares_brands]
-    await message.answer(f"Введите <b>строку</b> для поиска 🔩запчасти", reply_markup=make_row_keyboard(kb_lines))
+    await message.answer(f"Введите <b>строку</b> для поиска 🔩запчасти",
+                         reply_markup=make_row_keyboard(kb_lines),
+                         input_field_placeholder="Введите производителя запчасти")
     await state.set_state(FindSpare.brand)
 
 
@@ -195,7 +201,7 @@ async def find_model_spare(message: types.Message, state: FSMContext, bot: Bot):
     await state.update_data(brand=message.text)
     await message.answer(f"Введите <b>код</b> 🔩запчасти",
                          reply_markup=make_row_keyboard(kb_lines),
-                         input_field_placeholder="Введите поисковый запрос")
+                         input_field_placeholder="Введите код запчасти")
     await state.set_state(FindSpare.code)
 
 
@@ -204,7 +210,7 @@ async def find_spare(message: types.Message, state: FSMContext, session: AsyncSe
     await state.update_data(code=message.text)
     await message.answer(f"<b>Поиск</b> 🔨инструмента", reply_markup=reply_kb_lvl2.as_markup(
         resize_keyboard=True,
-        input_field_placeholder="Введите поисковый запрос"
+        input_field_placeholder="Введите новый запрос"
     ))
     data = await state.get_data()
     brand = data.get("brand")

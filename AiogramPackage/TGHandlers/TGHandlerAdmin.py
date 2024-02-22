@@ -25,6 +25,8 @@ from AiogramPackage.TGKeyboards.TGKeybReplyBuilder import reply_kb_lvl1_admin, d
 from AiogramPackage.TGAlchemy.TGDbQueriesEvent import db_add_event
 from AiogramPackage.TGAlchemy.TGModelEvent import TGModelEvent
 
+_static_dir = "data_static"
+
 admin_private_router = Router()
 admin_private_router.message.filter(BOTFilterChatType(["private"]), BOTFilterAdminList())
 
@@ -128,7 +130,9 @@ async def add_event_img(message: types.Message, state: FSMContext, session: Asyn
         file_name = "bot_" + str(file_path.split("/")[-1])
         # version2
         # file_name = file_id
-        static_file = os.path.join(os.getcwd(), "data_static", f"{file_name}")
+        # version3
+        up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
+        static_file = os.path.join(up_cur_file_path, _static_dir, file_name)
         # print(f"{static_file=}")
         # version1 with binary object
         # my_object = typing.BinaryIO()
@@ -163,7 +167,8 @@ async def download_static_file(message: types.Message, command: CommandObject, s
         # return
         try:
             file_name = command.args
-            static_file = os.path.join(os.getcwd(), "data_static", file_name)
+            up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
+            static_file = os.path.join(up_cur_file_path, _static_dir, file_name)
             async with aiofiles.open(static_file, 'rb') as image_from_buffer:
                 result = await message.answer_photo(
                     BufferedInputFile(file=await image_from_buffer.read(), filename=file_name),
@@ -195,7 +200,8 @@ async def save_static_file(message: types.Message, state: FSMContext, bot: Bot):
     # await message.answer(f"Отправляю файл ...")
     tech_msg_1 = await bot.send_message(chat_id=message.chat.id, text=f"Отправляю файл ...")
     try:
-        static_file = os.path.join(os.getcwd(), "data_static", file_name)
+        up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
+        static_file = os.path.join(up_cur_file_path, _static_dir, file_name)
         async with aiofiles.open(static_file, 'rb') as file_from_buffer:
             result = await message.answer_document(
                 BufferedInputFile(file=await file_from_buffer.read(), filename=f"bot_{file_name}"), caption=f"Файл")
