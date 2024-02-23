@@ -29,7 +29,7 @@ def get_url_btns(
 
 def get_mixed_btns(
         *,
-        btns: dict[str,str],
+        btns: dict[str, str],
         sizes: tuple[int] = (2,),):
     keyboard = InlineKeyboardBuilder()
     for text, value in btns.items():

@@ -2,6 +2,7 @@ import logging
 import os
 
 import aiofiles
+import aiogram.exceptions
 from aiogram import types, Router, F, Bot, html
 from aiogram.filters import CommandStart, Command, or_f, StateFilter
 from aiogram.filters.callback_data import CallbackQueryFilter
@@ -148,12 +149,11 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
         data = await state.get_data()
         brand = data.get("brand")
         model = data.get("model")
-        if brand == ".":
-            statement = select(TGModelProd).filter(TGModelProd.pathName.contains("Инструмент")).filter(TGModelProd.name.contains(model))
-        else:
-            statement = select(TGModelProd).filter(TGModelProd.pathName.contains(brand)).filter(
-            TGModelProd.pathName.contains("Инструмент")).filter(TGModelProd.name.contains(model))
-            # statement = select(TGModelProd).filter(TGModelProd.name.contains(brand)).filter(TGModelProd.name.contains(model))
+        statement = select(TGModelProd).filter(TGModelProd.pathName.contains("Инструмент"))
+        if brand != ".":
+            statement = statement.filter(TGModelProd.pathName.contains(brand))
+        if model != ".":
+            statement = statement.filter(TGModelProd.name.contains(model))
         result = await session.execute(statement)
         obj_list = result.scalars().all()
         if obj_list:
@@ -185,17 +185,33 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
                     # print(f"{len(prod_obj.id)=} and {len(prod_obj.meta.get('href'))=}")
                     if not photo:
                         photo = BufferedInputFile(file=await plot_img.read(), filename="Инструмент")
-                    await bot.send_photo(chat_id=message.chat.id,
-                                         photo=photo,
-                                         caption=f"🔨Инструмент {prod_obj.name}\n"
-                                                 f"🫙На складе: {stock_sum}",
-                                         reply_markup=get_mixed_btns(btns={
-                                             "Перейти": url,
-                                             "Подробнее": f"get_prod_info_{prod_obj.id}"
-                                         }))
-
+                    # try to send photo
+                    try:
+                        await bot.send_photo(chat_id=message.chat.id,
+                                             photo=photo,
+                                             caption=f"🔨Инструмент {prod_obj.name}\n"
+                                                     f"🫙На складе: {stock_sum}",
+                                             reply_markup=get_mixed_btns(btns={
+                                                 "Перейти": url,
+                                                 "Подробнее": f"get_prod_info_{prod_obj.id}"
+                                             }))
+                    except aiogram.exceptions.TelegramBadRequest:
+                        # sometime photo href doesnt work
+                        # await message.answer(f"Не могу найти фото {url} для 🔨Инструмента {str(data)}!")
+                        try:
+                            photo = BufferedInputFile(file=await plot_img.read(), filename="Инструмент")
+                            await bot.send_photo(chat_id=message.chat.id,
+                                                 photo=photo,
+                                                 caption=f"🔨Инструмент {prod_obj.name}\n"
+                                                         f"🫙На складе: {stock_sum}",
+                                                 reply_markup=get_mixed_btns(btns={
+                                                     "Перейти": url,
+                                                     "Подробнее": f"get_prod_info_{prod_obj.id}"
+                                                 }))
+                        except Exception as e:
+                            print(e)
         else:
-            await message.answer(f"🔨Инструмента {str(data)} не обнаружено!")
+            await message.answer(f"🔨Инструмент {str(data)} не обнаружен!")
     except Exception as e:
         logging.warning(f"cannot get attributes from prod, error {e}")
     await state.clear()
