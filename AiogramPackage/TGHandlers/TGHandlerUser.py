@@ -174,7 +174,7 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
                 stock_sum = "Недоступно"
                 try:
                     prod_id = prod_obj.id
-                    print(f"{prod_id=}")
+                    # print(f"{prod_id=}")
                     stock = await get_stock_row(prod_id)
                     stock_sum = stock.stock
                 except Exception as e:
