@@ -8,6 +8,7 @@ from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 
 from AiogramPackage.TGAlchemy.TGModelProdSQLite import create_table_async, drop_table_async, async_session
 from AiogramPackage.TGConnectors.BOTMainClass import BOTMainClass
+from AiogramPackage.TGHandlers.TGHandlerAdmin import reload_admins_list
 import logging
 
 from AiogramPackage.TGHandlers.TGHandlerCallback import callback_router
@@ -17,6 +18,7 @@ from AiogramPackage.TGHandlers.TGHandlerAdmin import admin_private_router
 from AiogramPackage.TGHandlers.TGHandlerFin import fin_group_router
 from AiogramPackage.TGCommon.TGBotCommandsList import private_commands
 from AiogramPackage.TGMiddleWares.TGMWDatabase import DBMiddleware
+
 # from AiogramPackage.TGConnectors.TGMSConnector import TGMSConnector
 
 logging.basicConfig(level=logging.INFO)
@@ -38,24 +40,24 @@ dp = Dispatcher()
 # version2 update in outer middleware all events before filters
 # dp.update.outer_middleware(CounterMiddleware())
 
-#0 router
+# 0 router
 dp.include_router(callback_router)
-#1 router
+# 1 router
 dp.include_router(admin_private_router)
-#2 router
+# 2 router
 dp.include_router(fin_group_router)
-#3 router
+# 3 router
 dp.include_router(user_router)
-#4 router
+# 4 router
 dp.include_router(user_group_router)
-
-
 
 bot.admins_list = [731370983]
 bot.chat_group_admins_list = [731370983]
 bot.fins_list = [731370983]
 bot.restricted_words = ['idiot']
 bot.filters_dict = dict()
+
+
 async def on_startup(bot):
     print("bot runs")
     # run_param = False
@@ -64,10 +66,14 @@ async def on_startup(bot):
     #     await drop_table_async()
     #
     # await create_table_async()
+    await reload_admins_list(bot)
+    await bot.send_message(chat_id=bot.admins_list[0], text="Бот был перегружен, конфигурационные данные обновлены")
     asyncio.create_task(scheduler())
+
 
 async def on_shutdown():
     print("Бот закрылся")
+
 
 # from https://ru.stackoverflow.com/questions/1144849/%D0%9A%D0%B0%D0%BA-%D1%81%D0%BE%D0%B2%D0%BC%D0%B5%D1%81%D1%82%D0%B8%D1%82%D1%8C-%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%83-aiogram-%D0%B8-schedule-%D0%BD%D0%B0-%D0%A2elegram-bot
 async def scheduler():
@@ -76,6 +82,7 @@ async def scheduler():
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
+
 
 async def scheduller_sends():
     try:
@@ -96,6 +103,7 @@ async def scheduller_sends():
     except Exception as e:
         await bot.send_message(chat_id=bot.admins_list[0], text=f"Не могу отправить ежедневный отчет, ошибка:\n{e}")
     print("It's reports time! Go on!")
+
 
 async def main():
     dp.startup.register(on_startup)

@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from AiogramPackage.TGAlchemy.TGModelProd import TGModelProd
 
 
+
 async def db_add_prod(session: AsyncSession, data_dict: dict):
     obj = TGModelProd(obj_dict=data_dict)
     session.add(obj)
@@ -16,7 +17,6 @@ async def db_get_prods(session: AsyncSession):
     result = await session.execute(query)
     for elem in result.scalars().all():
         print(elem.name)
-
     return result.scalars().all()
 
 

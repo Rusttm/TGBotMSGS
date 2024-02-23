@@ -20,7 +20,7 @@ from AiogramPackage.TGKeyboards.TGKeybReplyBuilder import reply_kb_lvl1, reply_k
 from AiogramPackage.TGKeyboards.TGKeybReplyList import make_row_keyboard
 from AiogramPackage.TGKeyboards.TGKeybInline import get_callback_btns, get_url_btns, get_mixed_btns
 from AiogramPackage.TGAlchemy.TGModelProd import TGModelProd
-from AiogramPackage.TGAlchemy.TGDbQueriesProd import db_get_prod
+from AiogramPackage.TGAlchemy.TGModelStock import get_stock_row
 
 _static_dir = "data_static"
 _spares_img = "instrument_img.jpg"
@@ -119,15 +119,16 @@ async def cancel_find_instrument(message: types.Message, state: FSMContext):
 
 @user_router.message(StateFilter(None), F.text == "Инструмент")
 async def find_brand_instrument(message: types.Message, state: FSMContext, bot: Bot):
-    available_instrument_brands = bot.filters_dict.get("instrument_brands_list", ["Meite", "Block"])
+    available_instrument_brands = bot.filters_dict.get("instrument_brands_list", ["MEITE", "BLOCK"])
     kb_lines = [add_btn, available_instrument_brands]
-    await message.answer(f"Введите <b>Марку</b> 🔨инструмента", reply_markup=make_row_keyboard(kb_lines))
+    await message.answer(f"Введите <b>Марку</b> 🔨инструмента (или '.')", reply_markup=make_row_keyboard(kb_lines))
     await state.set_state(FindInstrument.brand)
 
 
 # @user_router.message(FindInstrument.brand, F.text.in_(available_instrument_brands))
 @user_router.message(FindInstrument.brand)
 async def find_model_instrument(message: types.Message, state: FSMContext, bot: Bot):
+    """ after press brand """
     available_instrument_models = bot.filters_dict.get("instrument_models_list", ["8016", "851", "CN"])
     kb_lines = [add_btn, available_instrument_models]
     await state.update_data(brand=message.text)
@@ -137,6 +138,7 @@ async def find_model_instrument(message: types.Message, state: FSMContext, bot: 
 
 @user_router.message(FindInstrument.model)
 async def find_instrument(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot):
+    """ after press model"""
     await state.update_data(model=message.text)
     await message.answer(f"<b>Поиск</b> 🔨инструмента", reply_markup=reply_kb_lvl2.as_markup(
         resize_keyboard=True,
@@ -146,7 +148,12 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
         data = await state.get_data()
         brand = data.get("brand")
         model = data.get("model")
-        statement = select(TGModelProd).filter(TGModelProd.name.contains(brand)).filter(TGModelProd.name.contains(model))
+        if brand == ".":
+            statement = select(TGModelProd).filter(TGModelProd.pathName.contains("Инструмент")).filter(TGModelProd.name.contains(model))
+        else:
+            statement = select(TGModelProd).filter(TGModelProd.pathName.contains(brand)).filter(
+            TGModelProd.pathName.contains("Инструмент")).filter(TGModelProd.name.contains(model))
+            # statement = select(TGModelProd).filter(TGModelProd.name.contains(brand)).filter(TGModelProd.name.contains(model))
         result = await session.execute(statement)
         obj_list = result.scalars().all()
         if obj_list:
@@ -162,7 +169,16 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
                         elif attr_name == "Ссылка на фото товара":
                             photo = attr.get("value")
                 except Exception as e:
+
                     logging.warning(f"cannot get attributes from prod, error {e}")
+                stock_sum = "Недоступно"
+                try:
+                    prod_id = prod_obj.id
+                    print(f"{prod_id=}")
+                    stock = await get_stock_row(prod_id)
+                    stock_sum = stock.stock
+                except Exception as e:
+                    logging.warning(f"cannot get stock sum from stock, error {e}")
                 up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
                 static_file = os.path.join(up_cur_file_path, _static_dir, _spares_img)
                 async with aiofiles.open(static_file, "rb") as plot_img:
@@ -171,7 +187,8 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
                         photo = BufferedInputFile(file=await plot_img.read(), filename="Инструмент")
                     await bot.send_photo(chat_id=message.chat.id,
                                          photo=photo,
-                                         caption=f"🔨Инструмент {prod_obj.name}",
+                                         caption=f"🔨Инструмент {prod_obj.name}\n"
+                                                 f"🫙На складе: {stock_sum}",
                                          reply_markup=get_mixed_btns(btns={
                                              "Перейти": url,
                                              "Подробнее": f"get_prod_info_{prod_obj.id}"
@@ -214,45 +231,56 @@ async def find_spare(message: types.Message, state: FSMContext, session: AsyncSe
         resize_keyboard=True,
         input_field_placeholder="Введите новый запрос"
     ))
-    data = await state.get_data()
-    brand = data.get("brand")
-    code = data.get("code")
-    if brand == ".":
-        statement = select(TGModelProd).filter(TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
-    else:
-        statement = select(TGModelProd).filter(TGModelProd.pathName.contains(brand)).filter(
-        TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
-    result = await session.execute(statement)
-    obj_list = result.scalars().all()
-    if obj_list:
-        for prod_obj in obj_list:
-            url = "https://sermangroup.ru"
-            photo = None
-            try:
-                prod_attrs = prod_obj.attributes
-                for attr in prod_attrs:
-                    attr_name = attr.get("name")
-                    if attr_name == "Ссылка на товар на сайте магазина":
-                        url = attr.get("value")
-                    elif attr_name == "Ссылка на фото товара":
-                        photo = attr.get("value")
-            except Exception as e:
-                logging.warning(f"cannot get attributes from prod, error {e}")
-            static_file = os.path.join(os.getcwd(), "data_static", "spares_img.jpg")
-            async with aiofiles.open(static_file, "rb") as plot_img:
-                # print(f"{len(prod_obj.id)=} and {len(prod_obj.meta.get('href'))=}")
-                if not photo:
-                    photo = BufferedInputFile(file=await plot_img.read(), filename="Запчасть")
-                await bot.send_photo(chat_id=message.chat.id,
-                                     photo=photo,
-                                     caption=f"🔩Запчасти {prod_obj.name}",
-                                     reply_markup=get_mixed_btns(btns={
-                                         "Перейти": url,
-                                         "Подробнее": f"get_prod_info_{prod_obj.id}"
-                                     }))
-
-    else:
-        await message.answer(f"🔩Запчастей: {str(data)} не обнаружено!")
+    try:
+        data = await state.get_data()
+        brand = data.get("brand")
+        code = data.get("code")
+        if brand == ".":
+            statement = select(TGModelProd).filter(TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
+        else:
+            statement = select(TGModelProd).filter(TGModelProd.pathName.contains(brand)).filter(
+            TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
+        result = await session.execute(statement)
+        obj_list = result.scalars().all()
+        if obj_list:
+            for prod_obj in obj_list:
+                url = "https://sermangroup.ru"
+                photo = None
+                try:
+                    prod_attrs = prod_obj.attributes
+                    for attr in prod_attrs:
+                        attr_name = attr.get("name")
+                        if attr_name == "Ссылка на товар на сайте магазина":
+                            url = attr.get("value")
+                        elif attr_name == "Ссылка на фото товара":
+                            photo = attr.get("value")
+                except Exception as e:
+                    logging.warning(f"cannot get attributes from prod, error {e}")
+                try:
+                    prod_id = prod_obj.id
+                    print(f"{prod_id=}")
+                    stock = await get_stock_row(prod_id)
+                    stock_sum = stock.stock
+                except Exception as e:
+                    logging.warning(f"cannot get stock sum from stock, error {e}")
+                static_file = os.path.join(os.getcwd(), "data_static", "spares_img.jpg")
+                async with aiofiles.open(static_file, "rb") as plot_img:
+                    # print(f"{len(prod_obj.id)=} and {len(prod_obj.meta.get('href'))=}")
+                    if not photo:
+                        photo = BufferedInputFile(file=await plot_img.read(), filename="Запчасть")
+                    await bot.send_photo(chat_id=message.chat.id,
+                                         photo=photo,
+                                         caption=f"🔩Запчасти {prod_obj.name}\n"
+                                                 f"🫙На складе: {stock_sum}",
+                                         reply_markup=get_mixed_btns(btns={
+                                             "Перейти": url,
+                                             "Подробнее": f"get_prod_info_{prod_obj.id}"
+                                         }))
+        else:
+            await message.answer(f"🔩Запчастей: {str(data)} не обнаружено!")
+    except Exception as e:
+        logging.warning(f"cannot establish connection, error {e}")
+        await message.answer(f"Ваш запрос 🔩запчастей: не обработан:\n Ошибка доступа к базе. Попробуйте запросить еще раз")
     await state.clear()
 
 # @user_router.message(FindInstrument.model, F.text.lower() != "отмена")
