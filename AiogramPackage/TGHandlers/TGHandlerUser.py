@@ -133,7 +133,7 @@ async def find_model_instrument(message: types.Message, state: FSMContext, bot: 
     available_instrument_models = bot.filters_dict.get("instrument_models_list", ["8016", "851", "CN"])
     kb_lines = [add_btn, available_instrument_models]
     await state.update_data(brand=message.text)
-    await message.answer(f"Введите <b>Модель</b> 🔨инструмента", reply_markup=make_row_keyboard(kb_lines))
+    await message.answer(f"Введите <b>Модель</b> 🔨инструмента (или '.')", reply_markup=make_row_keyboard(kb_lines))
     await state.set_state(FindInstrument.model)
 
 
