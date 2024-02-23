@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 
-from AiogramPackage.TGAlchemy.TGModelProd import create_table_async, drop_table_async, async_session
+from AiogramPackage.TGAlchemy.TGModelProdSQLite import create_table_async, drop_table_async, async_session
 from AiogramPackage.TGConnectors.BOTMainClass import BOTMainClass
 import logging
 

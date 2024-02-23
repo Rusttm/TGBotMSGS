@@ -39,6 +39,6 @@ async def db_delete_prod(session: AsyncSession, prod_id: str):
     await session.commit()
 
 # if __name__ == "__main__":
-#     connector = TGModelEvent()
+    connector = TGModelProd()
 #     data_dict = dict({"from_chat_id": 123456, "to_chat_id": 34653456, "event_msg": "test", "event_descr": "eventer testing"})
-#     asyncio.run(db_add_event(session=AsyncSession(), data=data_dict))
+    print(asyncio.run(db_get_prod(session=AsyncSession(), prod_id="07583f34-a80d-11eb-0a80-084000094ab6")))

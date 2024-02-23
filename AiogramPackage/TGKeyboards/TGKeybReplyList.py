@@ -14,7 +14,7 @@ def make_row_keyboard(items: list[str]) -> ReplyKeyboardMarkup:
             res_list.append(temp_list)
         else:
             res_list.append(KeyboardButton(text=row))
-    return ReplyKeyboardMarkup(keyboard=res_list, resize_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard=res_list, resize_keyboard=True, input_field_placeholder="Введите комманду")
 
 
 del_kb = ReplyKeyboardRemove()

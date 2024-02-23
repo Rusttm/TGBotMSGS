@@ -4,7 +4,7 @@ from aiogram import BaseMiddleware, Router
 from aiogram.types import Message, TelegramObject
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from AiogramPackage.TGAlchemy.TGModelProd import async_session
+from AiogramPackage.TGAlchemy.TGModelProdSQLite import async_session
 
 
 class DBMiddleware(BaseMiddleware):
