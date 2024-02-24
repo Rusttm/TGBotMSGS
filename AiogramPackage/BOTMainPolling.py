@@ -105,6 +105,7 @@ async def scheduller_sends():
     print("It's reports time! Go on!")
 
 async def service_sends():
+    service_msg = str()
     try:
         service_msg = await download_service_events_row_async()
         if not service_msg:
@@ -114,11 +115,11 @@ async def service_sends():
             # recipients_list = bot.fins_list
             for recipient_id in recipients_list:
                 try:
-                        await bot.send_message(chat_id=recipient_id, text="Обновлнеа CAP_db:")
+                        await bot.send_message(chat_id=recipient_id, text="Обновлена CAP_db:")
                         await bot.send_message(chat_id=recipient_id, text=service_msg)
                 except Exception as e:
                     err_msg = f"Не могу отправить данные об обновлениях в чат {recipient_id}, ошибка:\n{e}"
-                    err_msg += f"Исключите пользователя с id {recipient_id} из списка в файле config/bot_main_config.json"
+                    # err_msg += f"Length {len(service_msg)=}, ошибка:\n{e}"
                     await bot.send_message(chat_id=bot.admins_list[0], text=err_msg)
     except Exception as e:
         await bot.send_message(chat_id=bot.admins_list[0], text=f"Не могу найти обновления, ошибка:\n{e}")

@@ -75,7 +75,7 @@ async def get_service_all_rows_async():
 async def get_service_filtered_rows_async():
     async with async_session() as session:
         query1 = select(TGModelService).filter(TGModelService.event_to.contains("Telegram"))
-        query = query1.filter(TGModelService.event_reaction == None).order_by(desc(TGModelService.position_id))
+        query = query1.filter(TGModelService.event_reaction is None).order_by(desc(TGModelService.position_id))
         result = await session.execute(query)
     return result.scalars().all()
 
@@ -90,7 +90,8 @@ async def download_service_events_row_async() -> str :
                 event_descr = new_event.event_descr
                 res_str += f"{new_event.event_table}:{new_event.event_time}\n"
                 await update_row_async(event_id)
-            return res_str
+                print(new_event)
+        return res_str
     except Exception as e:
         return f"Не могу найти обновления в базе, ошибка:\n{e}"
 
