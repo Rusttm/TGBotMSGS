@@ -11,7 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 import asyncio
 from sqlalchemy.types import Unicode
-from sqlalchemy import select, update, desc
+from sqlalchemy import select, update, desc, or_
 
 from AiogramPackage.TGAlchemy.TGConnSQL import TGConnSQL
 
@@ -74,8 +74,7 @@ async def get_service_all_rows_async():
 
 async def get_service_filtered_rows_async():
     async with async_session() as session:
-        query1 = select(TGModelService).filter(TGModelService.event_to.contains("Telegram"))
-        query = query1.filter(TGModelService.event_reaction is None).order_by(desc(TGModelService.position_id))
+        query = select(TGModelService).filter(TGModelService.event_to.contains("Telegram")).where(TGModelService.event_reaction_time.is_(None)).order_by(desc(TGModelService.position_id))
         result = await session.execute(query)
     return result.scalars().all()
 
@@ -90,7 +89,7 @@ async def download_service_events_row_async() -> str :
                 event_descr = new_event.event_descr
                 res_str += f"{new_event.event_table}:{new_event.event_time}\n"
                 await update_row_async(event_id)
-                print(new_event)
+                print(new_event.position_id)
         return res_str
     except Exception as e:
         return f"Не могу найти обновления в базе, ошибка:\n{e}"
@@ -100,8 +99,8 @@ if __name__ == '__main__':
     # create_new_table_sync()
     # asyncio.run(create_table_async())
     # asyncio.run(drop_table_async())
-    # event_list = asyncio.run(get_service_filtered_rows_async())
-    # for event in event_list:
-    #     print(event.position_id)
+    event_list = asyncio.run(get_service_filtered_rows_async())
+    for event in event_list:
+        print(event.position_id)
     # asyncio.run(update_row_async(position_id=29052))
-    print(asyncio.run(download_service_events_row_async()))
+    # print(asyncio.run(download_service_events_row_async()))

@@ -77,6 +77,7 @@ async def scheduler():
     update_time = "17:00"
     aioschedule.every().day.at(update_time).do(scheduller_sends)
     aioschedule.every().hour.at(":01").do(service_sends)
+    # aioschedule.every(10).minutes.do(service_sends)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
@@ -119,7 +120,7 @@ async def service_sends():
                         await bot.send_message(chat_id=recipient_id, text=service_msg)
                 except Exception as e:
                     err_msg = f"Не могу отправить данные об обновлениях в чат {recipient_id}, ошибка:\n{e}"
-                    # err_msg += f"Length {len(service_msg)=}, ошибка:\n{e}"
+                    err_msg += f"Найдено {len(service_msg)} записей, ошибка:\n{e}"
                     await bot.send_message(chat_id=bot.admins_list[0], text=err_msg)
     except Exception as e:
         await bot.send_message(chat_id=bot.admins_list[0], text=f"Не могу найти обновления, ошибка:\n{e}")
