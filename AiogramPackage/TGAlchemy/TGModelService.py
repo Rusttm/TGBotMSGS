@@ -81,7 +81,7 @@ async def get_service_filtered_rows_async():
 
 
 async def download_service_events_row_async() -> str :
-    res_str = str()
+    res_str = str("Таблицы:\n")
     try:
         new_event_list = await get_service_filtered_rows_async()
         if new_event_list:
