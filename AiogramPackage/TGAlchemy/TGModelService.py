@@ -80,16 +80,19 @@ async def get_service_filtered_rows_async():
     return result.scalars().all()
 
 
-async def download_service_events_row() -> str :
+async def download_service_events_row_async() -> str :
     res_str = str()
-    new_event_list = await get_service_filtered_rows_async()
-    if new_event_list:
-        for new_event in new_event_list:
-            event_id = new_event.position_id
-            event_descr = new_event.event_descr
-            res_str += f"{new_event.event_table}:{new_event.event_time}\n"
-            await update_row_async(event_id)
-    return res_str
+    try:
+        new_event_list = await get_service_filtered_rows_async()
+        if new_event_list:
+            for new_event in new_event_list:
+                event_id = new_event.position_id
+                event_descr = new_event.event_descr
+                res_str += f"{new_event.event_table}:{new_event.event_time}\n"
+                await update_row_async(event_id)
+            return res_str
+    except Exception as e:
+        return f"Не могу найти обновления в базе, ошибка:\n{e}"
 
 
 if __name__ == '__main__':
@@ -100,4 +103,4 @@ if __name__ == '__main__':
     # for event in event_list:
     #     print(event.position_id)
     # asyncio.run(update_row_async(position_id=29052))
-    print(asyncio.run(download_service_events_row()))
+    print(asyncio.run(download_service_events_row_async()))

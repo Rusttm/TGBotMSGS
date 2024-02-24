@@ -20,7 +20,7 @@ from AiogramPackage.TGHandlers.TGHandlerAdmin import admin_private_router
 from AiogramPackage.TGHandlers.TGHandlerFin import fin_group_router
 from AiogramPackage.TGCommon.TGBotCommandsList import private_commands
 from AiogramPackage.TGMiddleWares.TGMWDatabase import DBMiddleware
-from AiogramPackage.TGAlchemy.TGModelService import download_service_events_row
+from AiogramPackage.TGAlchemy.TGModelService import download_service_events_row_async
 
 # from AiogramPackage.TGConnectors.TGMSConnector import TGMSConnector
 
@@ -76,7 +76,7 @@ async def on_shutdown():
 async def scheduler():
     update_time = "17:00"
     aioschedule.every().day.at(update_time).do(scheduller_sends)
-    aioschedule.every().hour.at(":01").do(service_sends())
+    aioschedule.every().hour.at(":01").do(service_sends)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
@@ -87,39 +87,41 @@ async def scheduller_sends():
         from AiogramPackage.TGConnectors.TGMSConnector import TGMSConnector
         connector = TGMSConnector()
         prepare_rep_string = await connector.get_summary_rep_str_async()
-        recipients_list = bot.admins_list
-        # recipients_list = bot.fins_list
+        # recipients_list = bot.admins_list
+        recipients_list = bot.fins_list
         for recipient_id in recipients_list:
             try:
                 await bot.send_message(chat_id=recipient_id, text="Время <b>ежедневного</b> отчета:")
                 await bot.send_message(chat_id=recipient_id, text=prepare_rep_string)
             except Exception as e:
+
                 err_msg = f"Не могу отправить ежедневный отчет в чат {recipient_id}, ошибка:\n{e}"
                 err_msg += f"Исключите пользователя с id {recipient_id} из списка в файле config/bot_main_config.json"
                 await bot.send_message(chat_id=bot.admins_list[0],
                                        text=err_msg)
     except Exception as e:
+
         await bot.send_message(chat_id=bot.admins_list[0], text=f"Не могу отправить ежедневный отчет, ошибка:\n{e}")
     print("It's reports time! Go on!")
 
 async def service_sends():
     try:
-        service_msg = download_service_events_row()
+        service_msg = await download_service_events_row_async()
         if not service_msg:
             return False
         else:
-        # recipients_list = bot.admins_list
-            recipients_list = bot.fins_list
+            recipients_list = bot.admins_list
+            # recipients_list = bot.fins_list
             for recipient_id in recipients_list:
                 try:
                         await bot.send_message(chat_id=recipient_id, text="Обновлнеа CAP_db:")
                         await bot.send_message(chat_id=recipient_id, text=service_msg)
                 except Exception as e:
-                    err_msg = f"Не могу отправить ежедневный отчет в чат {recipient_id}, ошибка:\n{e}"
+                    err_msg = f"Не могу отправить данные об обновлениях в чат {recipient_id}, ошибка:\n{e}"
                     err_msg += f"Исключите пользователя с id {recipient_id} из списка в файле config/bot_main_config.json"
                     await bot.send_message(chat_id=bot.admins_list[0], text=err_msg)
     except Exception as e:
-        await bot.send_message(chat_id=bot.admins_list[0], text=f"Не могу отправить ежедневный отчет, ошибка:\n{e}")
+        await bot.send_message(chat_id=bot.admins_list[0], text=f"Не могу найти обновления, ошибка:\n{e}")
     print(datetime.datetime.now(), "\nCheck the DataBase")
 
 async def main():
