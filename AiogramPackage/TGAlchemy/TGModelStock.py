@@ -6,6 +6,7 @@ from sqlalchemy import Double, BigInteger, Uuid, Boolean, select
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY, insert
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import DeclarativeBase, aliased
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 import asyncio
 from sqlalchemy.types import Unicode
