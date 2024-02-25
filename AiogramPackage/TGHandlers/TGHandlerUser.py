@@ -24,7 +24,8 @@ from AiogramPackage.TGAlchemy.TGModelProd import TGModelProd
 from AiogramPackage.TGAlchemy.TGModelStock import get_stock_row
 
 _static_dir = "data_static"
-_spares_img = "instrument_img.jpg"
+_instrument_img = "instrument_img.jpg"
+_spares_img = "spares_img.jpg"
 
 user_router = Router()
 user_router.message.filter(BOTFilterChatType(["private"]))
@@ -180,7 +181,7 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
                 except Exception as e:
                     logging.warning(f"cannot get stock sum from stock, error {e}")
                 up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
-                static_file = os.path.join(up_cur_file_path, _static_dir, _spares_img)
+                static_file = os.path.join(up_cur_file_path, _static_dir, _instrument_img)
                 async with aiofiles.open(static_file, "rb") as plot_img:
                     # print(f"{len(prod_obj.id)=} and {len(prod_obj.meta.get('href'))=}")
                     if not photo:
@@ -209,7 +210,8 @@ async def find_instrument(message: types.Message, state: FSMContext, session: As
                                                      "Подробнее": f"get_prod_info_{prod_obj.id}"
                                                  }))
                         except Exception as e:
-                            print(e)
+                            msg = f"Cant find correct photo for spare part, error {e}"
+                            print(msg)
         else:
             await message.answer(f"🔨Инструмент {str(data)} не обнаружен!")
     except Exception as e:
@@ -251,11 +253,11 @@ async def find_spare(message: types.Message, state: FSMContext, session: AsyncSe
         data = await state.get_data()
         brand = data.get("brand")
         code = data.get("code")
+        statement0 = select(TGModelProd).filter(TGModelProd.pathName.contains("Запасные"))
         if brand == ".":
-            statement = select(TGModelProd).filter(TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
+            statement = statement0.filter(TGModelProd.name.contains(code))
         else:
-            statement = select(TGModelProd).filter(TGModelProd.pathName.contains(brand)).filter(
-            TGModelProd.pathName.contains("Запасные")).filter(TGModelProd.name.contains(code))
+            statement = statement0.filter(TGModelProd.pathName.contains(brand)).filter(TGModelProd.name.contains(code))
         result = await session.execute(statement)
         obj_list = result.scalars().all()
         if obj_list:
@@ -279,19 +281,35 @@ async def find_spare(message: types.Message, state: FSMContext, session: AsyncSe
                     stock_sum = stock.stock
                 except Exception as e:
                     logging.warning(f"cannot get stock sum from stock, error {e}")
-                static_file = os.path.join(os.getcwd(), "data_static", "spares_img.jpg")
+                up_cur_file_path = os.path.dirname(os.path.dirname(__file__))
+                static_file = os.path.join(up_cur_file_path, _static_dir, _spares_img)
                 async with aiofiles.open(static_file, "rb") as plot_img:
                     # print(f"{len(prod_obj.id)=} and {len(prod_obj.meta.get('href'))=}")
                     if not photo:
                         photo = BufferedInputFile(file=await plot_img.read(), filename="Запчасть")
-                    await bot.send_photo(chat_id=message.chat.id,
-                                         photo=photo,
-                                         caption=f"🔩Запчасти {prod_obj.name}\n"
-                                                 f"🫙На складе: {stock_sum}",
-                                         reply_markup=get_mixed_btns(btns={
-                                             "Перейти": url,
-                                             "Подробнее": f"get_prod_info_{prod_obj.id}"
-                                         }))
+                    try:
+                        await bot.send_photo(chat_id=message.chat.id,
+                                             photo=photo,
+                                             caption=f"🔩Запчасти {prod_obj.name}\n"
+                                                     f"🫙На складе: {stock_sum}",
+                                             reply_markup=get_mixed_btns(btns={
+                                                 "Перейти": url,
+                                                 "Подробнее": f"get_prod_info_{prod_obj.id}"
+                                             }))
+                    except aiogram.exceptions.TelegramBadRequest:
+                        try:
+                            photo = BufferedInputFile(file=await plot_img.read(), filename="Инструмент")
+                            await bot.send_photo(chat_id=message.chat.id,
+                                                 photo=photo,
+                                                 caption=f"🔨Инструмент {prod_obj.name}\n"
+                                                         f"🫙На складе: {stock_sum}",
+                                                 reply_markup=get_mixed_btns(btns={
+                                                     "Перейти": url,
+                                                     "Подробнее": f"get_prod_info_{prod_obj.id}"
+                                                 }))
+                        except Exception as e:
+                            print(e)
+
         else:
             await message.answer(f"🔩Запчастей: {str(data)} не обнаружено!")
     except Exception as e:
