@@ -23,7 +23,8 @@ class TGMSConnector(MSGSControllerAsync):
             self.logger.warning(res_str)
             logging.warning(res_str)
         else:
-            res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💰Денег на <b>счетах:</b> {int(total)}руб.</a>\n"
+            res_str = (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💰Денег на <b>счетах:</b> "
+                       f"{format(int(total), ',d').replace(',',' ')}руб.</a>\n")
         return res_str
 
     async def get_debt_rep_str_async(self):
@@ -53,7 +54,8 @@ class TGMSConnector(MSGSControllerAsync):
             self.logger.warning(res_str)
             logging.warning(res_str)
         else:
-            res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Прибыль</b> по месяцу: {int(total)}руб.</a>\n"
+            res_str = (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Прибыль</b> по месяцу: "
+                       f"{format(int(total), ',d').replace(',',' ')}руб.</a>\n")
         return res_str
 
     async def get_current_month_sales_rep_str_async(self):
@@ -71,9 +73,8 @@ class TGMSConnector(MSGSControllerAsync):
             self.logger.warning(res_str)
             logging.warning(res_str)
         else:
-            res_str = (f"👛<b>Выручка текущий месяц</b>"
-                       f" ({datetime.date(1900, current_month_num, 1).strftime('%b')}):"
-                       f" <u>{format(int(summ_sales), ',d').replace(',',' ')}руб.</u>\n")
+            res_str = (f"👛<b>Выручка </b> по месяцу:"
+                       f" {format(int(summ_sales), ',d').replace(',',' ')}руб.\n")
         return res_str
 
     async def get_bal_rep_str_async(self):
@@ -88,7 +89,7 @@ class TGMSConnector(MSGSControllerAsync):
             self.logger.warning(res_str)
             logging.warning(res_str)
         else:
-            res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>⚖️<b>Баланс</b> на сегодня: {int(total)}руб.</a>\n"
+            res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>⚖️<b>Баланс</b> на сегодня: {format(int(total), ',d').replace(',',' ')}руб.</a>\n"
         return res_str
 
     async def get_margins_rep_str_async(self):
