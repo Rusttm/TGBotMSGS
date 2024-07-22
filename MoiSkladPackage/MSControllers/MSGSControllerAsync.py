@@ -97,6 +97,21 @@ class MSGSControllerAsync(GSMSContAsync):
             print(msg)
         return profit_data
 
+    async def get_current_month_profit_async(self) -> pd.DataFrame:
+        """ saves profit ms data to google spread"""
+        profit_data = pd.DataFrame()
+        try:
+            from MoiSkladPackage.MSReports.MSReportProfitAsync import MSReportProfitAsync
+            connector = MSReportProfitAsync()
+            profit_data = await connector.get_current_month_profit_report_async()
+            msg = f"{__class__.__name__} saves monthly profit report to spreadsheet. "
+            self.logger.debug(msg)
+        except Exception as e:
+            msg = f"{__class__.__name__} cant save monthly profit report to spreadsheet, Error: \n {e} "
+            self.logger.warning(msg)
+            print(msg)
+        return profit_data
+
     async def save_daily_accounts_gs_async(self) -> pd.DataFrame:
         """ saves profit ms data to google spread"""
         accounts_data = pd.DataFrame()
@@ -159,8 +174,8 @@ if __name__ == "__main__":
     # print(asyncio.run(controller.save_balance_gs_async()))
     # print(asyncio.run(controller.save_profit_gs_custom_async(from_date="2023-01-01", to_date="2023-12-31")))
     # print(asyncio.run(controller.save_profit_gs_daily_async()))
-    for i in range(1, 6):
-        print(asyncio.run(controller.save_profit_gs_monthly_async(to_year=2024, to_month=i)))
+    # for i in range(1, 6):
+    #     print(asyncio.run(controller.save_profit_gs_monthly_async(to_year=2024, to_month=i)))
     # for year in range(2021,2024):
     #     for month in range(1,13):
     #         asyncio.run(controller.save_profit_gs_monthly_async(to_year=year, to_month=month))
@@ -168,5 +183,6 @@ if __name__ == "__main__":
     # print(asyncio.run(controller.save_custom_margins_gs_async(from_date="2023-01-9", to_date="2023-01-9")))
     # print(asyncio.run(controller.save_daily_debt_gs_async()))
     # print(asyncio.run(controller.save_daily_accounts_gs_async()))
+    print(asyncio.run(controller.get_current_month_profit_async()))
     controller.logger.debug("stock_all class initialized")
 

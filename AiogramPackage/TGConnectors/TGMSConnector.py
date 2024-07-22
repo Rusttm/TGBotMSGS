@@ -1,6 +1,9 @@
+import asyncio
+import datetime
 from MoiSkladPackage.MSControllers.MSGSControllerAsync import MSGSControllerAsync
 import os
 import logging
+
 
 class TGMSConnector(MSGSControllerAsync):
     logger_name = f"{os.path.basename(__file__)}"
@@ -22,6 +25,7 @@ class TGMSConnector(MSGSControllerAsync):
         else:
             res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💰Денег на <b>счетах:</b> {int(total)}руб.</a>\n"
         return res_str
+
     async def get_debt_rep_str_async(self):
         res_str = str()
         try:
@@ -36,6 +40,7 @@ class TGMSConnector(MSGSControllerAsync):
         else:
             res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>🚬<b>Задолженность</b> клиентов на сегодня: {int(total)}руб.</a>\n"
         return res_str
+
     async def get_profit_rep_str_async(self):
         res_str = str()
         try:
@@ -50,6 +55,27 @@ class TGMSConnector(MSGSControllerAsync):
         else:
             res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Прибыль</b> по месяцу: {int(total)}руб.</a>\n"
         return res_str
+
+    async def get_current_month_sales_rep_str_async(self):
+        res_str = str()
+        summ_sales = 0
+        try:
+            res_dict = await self.get_current_month_profit_async()
+            for dept in res_dict.get("data"):
+                if dept.get("Отдел") == "Всего":
+                    summ_sales = dept.get("Выручка")
+                    break
+            current_month_num = int(datetime.datetime.now().month)
+        except Exception as e:
+            res_str = f"Отчет по прибыли не сформирован, Ошибка: \n {e}"
+            self.logger.warning(res_str)
+            logging.warning(res_str)
+        else:
+            res_str = (f"👛<b>Выручка текущий месяц</b>"
+                       f" ({datetime.date(1900, current_month_num, 1).strftime('%b')}):"
+                       f" <u>{format(int(summ_sales), ',d').replace(',',' ')}руб.</u>\n")
+        return res_str
+
     async def get_bal_rep_str_async(self):
         res_str = str()
         try:
@@ -64,6 +90,7 @@ class TGMSConnector(MSGSControllerAsync):
         else:
             res_str = f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>⚖️<b>Баланс</b> на сегодня: {int(total)}руб.</a>\n"
         return res_str
+
     async def get_margins_rep_str_async(self):
         res_str = str()
         try:
@@ -91,10 +118,12 @@ class TGMSConnector(MSGSControllerAsync):
             self.logger.warning(res_str)
             logging.warning(res_str)
         return res_str
+
     async def get_summary_rep_str_async(self):
         res_str = str()
         try:
             bal_str = await self.get_bal_rep_str_async()
+            sales_str = await self.get_current_month_sales_rep_str_async()
             profit = await self.get_profit_rep_str_async()
             account_str = await self.get_account_rep_str_async()
             margin_str = await self.get_margins_rep_str_async()
@@ -103,5 +132,9 @@ class TGMSConnector(MSGSControllerAsync):
             self.logger.warning(f"Cant load margins report, Error:\n {e}")
             logging.warning(res_str)
         else:
-            res_str = str(bal_str + profit + account_str + margin_str)
+            res_str = str(bal_str + sales_str + profit + account_str + margin_str)
         return res_str
+if __name__ == "__main__":
+    connect = TGMSConnector()
+    connect.python_version_checker()
+    print(asyncio.run(connect.get_current_month_sales_rep_str_async()))

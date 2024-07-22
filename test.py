@@ -11,4 +11,7 @@ async def main():
             pokemon = await resp.json()
             print(pokemon['name'])
 
-asyncio.run(main())
+# asyncio.run(main())
+
+import datetime
+print(datetime.datetime.now().month)

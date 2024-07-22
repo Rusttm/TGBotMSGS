@@ -34,7 +34,6 @@ class MSReportProfitAsync(MSMainClass):
             'Всего': {'Выручка': 23.58, 'Себестоимость': 12.93, 'Валовая прибыль': 19.6}}
         """
         dep_sum_sales = dict()
-
         try:
             from MoiSkladPackage.MSReports.MSCustDeptAsync import MSCustDeptAsync
             requester1 = MSCustDeptAsync()
@@ -174,7 +173,22 @@ class MSReportProfitAsync(MSMainClass):
         result = await self.get_handled_expenses(from_date, to_date, report_type)
         return result
 
-
+    async def get_current_month_profit_report_async(self) -> dict:
+        """report to current day from 1 day of this month"""
+        import calendar
+        # current_month
+        to_month = datetime.datetime.now().month
+        # current_month_year
+        to_year = datetime.datetime.now().year
+        current_month_first_day_datetime = datetime.datetime.strptime(f"{to_year}-{to_month}-01", "%Y-%m-%d")
+        current_month_last_day = calendar.monthrange(to_year, to_month)[1]
+        current_month_last_day_datetime = datetime.datetime.strptime(
+            f"{to_year}-{to_month}-{current_month_last_day}", "%Y-%m-%d")
+        from_date = current_month_first_day_datetime.strftime("%Y-%m-%d")
+        to_date = current_month_last_day_datetime.strftime("%Y-%m-%d")
+        report_type = "monthly"
+        result = await self.get_handled_expenses(from_date, to_date, report_type)
+        return result
 
 if __name__ == "__main__":
     start_time = time.time()
@@ -185,5 +199,6 @@ if __name__ == "__main__":
     # print(asyncio.run(connect.get_handled_dep_sales(from_date="2024-01-01", to_date="2024-01-31")))
     # print(asyncio.run(connect.get_handled_expenses(from_date="2024-01-01", to_date="2024-01-31")))
     # print(asyncio.run(connect.get_daily_profit_report_async()))
-    print(asyncio.run(connect.get_monthly_profit_report_async(to_year=2024, to_month=3)))
+    # print(asyncio.run(connect.get_monthly_profit_report_async(to_year=2024, to_month=3)))
+    print(asyncio.run(connect.get_current_month_profit_report_async()))
     print(f"report done in {int(time.time() - start_time)}sec at {time.strftime('%H:%M:%S', time.localtime())}")
