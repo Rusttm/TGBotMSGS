@@ -199,6 +199,6 @@ if __name__ == "__main__":
     # print(asyncio.run(connect.get_handled_dep_sales(from_date="2024-01-01", to_date="2024-01-31")))
     # print(asyncio.run(connect.get_handled_expenses(from_date="2024-01-01", to_date="2024-01-31")))
     # print(asyncio.run(connect.get_daily_profit_report_async()))
-    # print(asyncio.run(connect.get_monthly_profit_report_async(to_year=2024, to_month=3)))
-    print(asyncio.run(connect.get_current_month_profit_report_async()))
+    print(asyncio.run(connect.get_monthly_profit_report_async(to_year=2024, to_month=7)))
+    # print(asyncio.run(connect.get_current_month_profit_report_async()))
     print(f"report done in {int(time.time() - start_time)}sec at {time.strftime('%H:%M:%S', time.localtime())}")

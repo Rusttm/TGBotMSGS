@@ -43,12 +43,14 @@ class TGMSConnector(MSGSControllerAsync):
         return res_str
 
     async def get_profit_rep_str_async(self):
-        res_str = str()
+        res_str = res_str2 = str()
         try:
             res_dict = await self.save_profit_gs_daily_async()
             gs_href = res_dict.get("info").get("gs_href")
             ws_id = res_dict.get("info").get("gs_ws_id", 0)
-            total = res_dict.get("info").get("total")
+            total = res_dict.get("info").get("total") # total pure profit
+            total_value = res_dict.get("data")[-1]["Валовая прибыль"]  # total profit
+            fact_payments = total_value - total
         except Exception as e:
             res_str = f"Отчет по прибыли не сформирован, Ошибка: \n {e}"
             self.logger.warning(res_str)
@@ -56,7 +58,11 @@ class TGMSConnector(MSGSControllerAsync):
         else:
             res_str = (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Прибыль</b> по месяцу: "
                        f"{format(int(total), ',d').replace(',',' ')}руб.</a>\n")
-        return res_str
+            res_str2 = (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Прибыль (val)</b> по месяцу: "
+                       f"{format(int(total_value), ',d').replace(',',' ')}руб.</a>\n")
+            res_str2 += (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Payments (val)</b> по месяцу: "
+                        f"{format(int(fact_payments), ',d').replace(',', ' ')}руб.</a>\n")
+        return res_str2
 
     async def get_current_month_sales_rep_str_async(self):
         res_str = str()
@@ -138,4 +144,4 @@ class TGMSConnector(MSGSControllerAsync):
 if __name__ == "__main__":
     connect = TGMSConnector()
     connect.python_version_checker()
-    print(asyncio.run(connect.get_current_month_sales_rep_str_async()))
+    print(asyncio.run(connect.get_profit_rep_str_async()))
