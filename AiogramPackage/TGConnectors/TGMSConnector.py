@@ -58,7 +58,7 @@ class TGMSConnector(MSGSControllerAsync):
         else:
             res_str = (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Прибыль</b> по месяцу: "
                        f"{format(int(total), ',d').replace(',',' ')}руб.</a>\n")
-            res_str2 = (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Прибыль (val)</b> по месяцу: "
+            res_str2 = (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>🤑<b>Прибыль (val)</b> по месяцу: "
                        f"{format(int(total_value), ',d').replace(',',' ')}руб.</a>\n")
             res_str2 += (f"<a href='{gs_href + '/edit#gid=' + str(ws_id)}'>💸<b>Payments (val)</b> по месяцу: "
                         f"{format(int(fact_payments), ',d').replace(',', ' ')}руб.</a>\n")
