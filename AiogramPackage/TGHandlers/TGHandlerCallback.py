@@ -143,19 +143,22 @@ async def get_rep_account(callback: types.CallbackQuery, bot: Bot):
 @flags.callback_answer(pre=False, cache_time=10)
 async def get_rep_daily(callback: types.CallbackQuery, callback_answer: CallbackAnswer, bot: Bot):
     extra_data = callback.data[14:]  # recieve chat_id
+    chat_id = callback.from_user.id
     if extra_data:
-        temp_msg = await bot.send_sticker(chat_id=int(extra_data), sticker=_await_sticker)
-        temp_msg2 = await bot.send_message(chat_id=int(extra_data), text=f"Отчет готовится, это займет около 1 минуты ...")
+        temp_msg = await bot.send_sticker(chat_id=chat_id, sticker=_await_sticker)
+        temp_msg_id = temp_msg.message_id
+        temp_msg2 = await bot.send_message(chat_id=chat_id, text=f"Отчет готовится, это займет около 1 минуты ...")
+        temp_msg2_id = temp_msg2.message_id
     today = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     res_str = str(f"Отчет на {today}\n")
     try:
         res_str += await TGMSConnector().get_summary_rep_str_async()
-        await callback.message.answer(res_str)
+        # await callback.message.answer(res_str)
+        await bot.send_message(chat_id=chat_id, text=res_str)
+        if extra_data:
+            await bot.delete_messages(chat_id= chat_id, message_ids=[temp_msg_id, temp_msg2_id])
     except Exception as e:
         res_str = f"Can't form accounts report, Error:\n {e}"
         logging.warning(res_str)
-    finally:
-        if extra_data:
-            await bot.delete_messages(chat_id= extra_data, message_ids=[temp_msg.message_id, temp_msg2.message_id])
-    callback_answer.text = str(f"Отчет на {today}\n отправлен")
-    await callback.answer()
+    # callback_answer.text = str(f"Отчет на {today}\n отправлен")
+    # await callback.answer()
