@@ -183,6 +183,7 @@ if __name__ == "__main__":
     # print(asyncio.run(controller.save_custom_margins_gs_async(from_date="2023-01-9", to_date="2023-01-9")))
     # print(asyncio.run(controller.save_daily_debt_gs_async()))
     # print(asyncio.run(controller.save_daily_accounts_gs_async()))
-    print(asyncio.run(controller.get_current_month_profit_async()))
+    # print(asyncio.run(controller.get_current_month_profit_async()))
+    print(asyncio.run(controller.save_profit_gs_daily_async()))
     controller.logger.debug("stock_all class initialized")
 

@@ -49,7 +49,15 @@ class TGMSConnector(MSGSControllerAsync):
             gs_href = res_dict.get("info").get("gs_href")
             ws_id = res_dict.get("info").get("gs_ws_id", 0)
             total = res_dict.get("info").get("total") # total pure profit
-            total_value = res_dict.get("data")[-1]["Валовая прибыль"]  # total profit
+            req_data = res_dict.get("data")
+            total_value = 0
+            if req_data:
+                for row in req_data:
+                    dept = row.get("Отдел")
+                    if dept == "Всего":
+                        total_value = row .get("Валовая прибыль")  # total profit
+                        break
+
             fact_payments = total_value - total
         except Exception as e:
             res_str = f"Отчет по прибыли не сформирован, Ошибка: \n {e}"

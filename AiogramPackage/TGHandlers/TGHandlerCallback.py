@@ -59,7 +59,7 @@ async def get_rep_fin_profit_daily(callback: types.CallbackQuery, bot: Bot):
     finally:
         if extra_data:
             await bot.delete_messages(chat_id=extra_data, message_ids=[temp_msg.message_id, temp_msg2.message_id])
-    await callback.answer()
+    # await callback.answer()
 
 @callback_router.callback_query(F.data.startswith("rep_fin_balance_"), BOTFilterFinList())
 # @flags.callback_answer(pre=False, cache_time=60)
