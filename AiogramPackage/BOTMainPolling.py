@@ -76,7 +76,7 @@ async def on_shutdown():
 async def scheduler():
     update_time = "17:00"
     aioschedule.every().day.at(update_time).do(scheduller_sends)
-    aioschedule.every().hour.at(":01").do(service_sends)
+    # aioschedule.every().hour.at(":01").do(service_sends)
     # aioschedule.every(10).minutes.do(service_sends)
     while True:
         await aioschedule.run_pending()
